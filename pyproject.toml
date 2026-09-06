@@ -1,0 +1,29 @@
+[project]
+name = "fly-in"
+version = "0.1.0"
+authors = [
+    { name="Gabriele Bueno", login="gabde-so", email="gabrielecsbueno@gmail.com" },
+]
+description = "Sistema de roteamento de drones"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pygame>=2.6.1",
+]
+
+[dependency-groups]
+dev = [
+    "flake8>=7",
+    "mypy>=1.10",
+    "pytest>=9.1.1",
+]
+
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+# docs/debug/tests roda a TUI do depurador dentro de um pty; mora junto
+# do modulo que testa, e nao em tests/, que espelha src/fly_in/.
+testpaths = ["tests", "docs/debug/tests"]

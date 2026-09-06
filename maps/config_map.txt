@@ -1,0 +1,28 @@
+# Teste facil
+
+nb_drones: 4
+
+start_hub: A 0 0
+hub: B 2 2
+hub: C 2 -1 [zone=priority max_drones=2]
+hub: D 3 1
+hub: E 4 0
+hub: F 5 -2
+hub: G 6 2
+hub: H 7 -1 [zone=blocked max_drones=2]
+end_hub: I 8 0 [zone=restricted max_drones=2]
+
+connection: A-B
+connection: A-C
+connection: B-D
+connection: B-G
+connection: C-D
+connection: C-F
+connection: C-E
+connection: D-E
+connection: E-F
+connection: E-I
+connection: E-G
+connection: F-H
+connection: G-I
+connection: H-I
