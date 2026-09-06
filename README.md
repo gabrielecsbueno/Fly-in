@@ -1,134 +1,135 @@
-*Este proyecto ha sido creado como parte del currículo de 42 por [gabde-so](https://profile-v3.intra.42.fr/users/gabde-so)*
-
-# **FLY_IN**
+<p align="center">
+    <img src=./assets/banner.png>
+</p>
 
 ---
 
-# Description
+O projeto **Fly-in é um sistema que roteia, de forma eficiente, uma frota de drones a partir de uma base central (início) até um local de destino (fim)**, navegando por essa rede dinâmica sob um conjunto de restrições rígidas e objetivos de otimização.
 
-> Objetivo principal del proyecto: enrutamiento eficiente de drones autónomos
+O mapa é recebido a partir de um arquivo `.txt` passado por argumento, ou o `maps/config_map.txt` padrão caso nenhum seja informado.
 
-El proyecto **Fly-in es un sistema que enruta, de forma eficiente, una flota de drones desde una base central (inicio) hasta un lugar de destino (fin)**, navegando por esa red dinámica bajo un conjunto de restricciones estrictas y objetivos de optimización.
+O grafo é representado como uma rede de zonas conectadas, onde as conexões definem os possíveis caminhos de movimento entre as zonas.
 
-El mapa se recibe a partir de un archivo `.txt` pasado por argumento, o el `maps/config_map.txt` por defecto si no se indica ninguno.
+> Objetivo principal do projeto: criacao de drones autônomos
 
-El grafo se representa como una red de zonas conectadas, donde las conexiones definen los posibles caminos de movimiento entre las zonas.
-
-## Estructura del Proyecto
+## Estrutura do Projeto
 
 ```bash
 fly_in/
-├── maps/                       # mapas de ejemplo (easy/medium/hard/challenger) + mapa de prueba
+├── maps/                       # mapas de exemplo (easy/medium/hard/challenger) + mapa de teste
 ├── src/
-│   └── fly_in/                 # paquete Python principal
-│       ├── __init__.py         # inicializador del paquete
-│       ├── __main__.py         # punto de entrada (make run / make debug)
-│       ├── app.py              # orquestador del programa
-│       ├── domain/             # modelo de dominio: clases puras
+│   └── fly_in/                  # pacote Python principal
+│       ├── __init__.py         # inicializador do pacote
+│       ├── __main__.py         # ponto de entrada (make run / make debug)
+│       ├── app.py              # orquestrador do programa
+│       ├── domain/             # modelo de domínio: classes puras
 │       │   ├── __init__.py
-│       │   ├── zone_type.py    # Enum ZoneType, costo en turnos por tipo de zona
-│       │   ├── zone.py         # clase Zone: datos estáticos de una zona del mapa
-│       │   ├── connection.py   # clase Connection: une dos Zones, guarda max_link_capacity
-│       │   ├── drone.py        # clase Drone: posición, estado e historial del drone
-│       │   └── graph.py        # clase Graph/Network: zonas + conexiones, lista de adyacencia
-│       ├── parsing/            # analizador del archivo de mapa
+│       │   ├── zone_type.py    # Enum ZoneType, custo em turnos por tipo de zona
+│       │   ├── zone.py         # classe Zone: dados estáticos de uma zona do mapa
+│       │   ├── connection.py   # classe Connection: liga duas Zones, guarda max_link_capacity
+│       │   ├── drone.py        # classe Drone: posição, status e histórico do drone
+│       │   └── graph.py        # classe Graph/Network: zonas + conexões, lista de adjacência
+│       ├── parsing/            # parser do arquivo de mapa
 │       │   ├── __init__.py
-│       │   ├── map_parser.py   # MapParser: lee el archivo línea a línea y construye el Graph
-│       │   ├── metadata.py     # analizador de metadatos [clave=valor clave2=valor2]
-│       │   └── errors.py       # MapParseError y otras excepciones propias del parser
-│       ├── pathfinding/        # algoritmos para buscar el camino
+│       │   ├── map_parser.py   # MapParser: lê o arquivo linha a linha e monta o Graph
+│       │   ├── metadata.py     # parser dos metadados [chave=valor chave2=valor2]
+│       │   └── errors.py       # MapParseError e outras exceções customizadas do parser
+│       ├── pathfinding/         # algoritmos para buscar o caminho
 │       │   ├── __init__.py
-│       │   ├── dijkstra.py     # Dijkstra: menor costo total
+│       │   ├── dijkstra.py     # Dijkstra: menor custo total
 │       │   └── bfs.py          # BFS: menor número de saltos
-│       ├── simulation/         # motor de simulación
+│       ├── simulation/         # motor de simulação
 │       │   ├── __init__.py
-│       │   ├── engine.py       # SimulationEngine: bucle principal de turnos
-│       │   ├── occupancy.py    # ZoneOccupancy y ConnectionOccupancy: estado dinámico de ocupación
-│       │   └── output.py       # MapsResult: guarda los datos de la simulación listos para renderizar
-│       ├── ui/                 # visualización de la simulación
-│       │   ├── assets/         # imágenes usadas en la visualización de pygame
+│       │   ├── engine.py       # SimulationEngine: loop principal de turnos
+│       │   ├── occupancy.py    # ZoneOccupancy e ConnectionOccupancy: estado dinâmico de ocupação
+│       │   └── output.py       # MapsResult: guarda os dados de simulacao pronto para rederizacao
+│       ├── ui/                 # visualização da simulação
+│       │   ├── assets/         # imagens usadas na visualizacao do pygame
 │       │   ├── __init__.py
-│       │   └── interface.py    # salida de pygame
+│       │   └── interface.py    # saída do pygame
 │       └── bonus/
 │           ├── __init__.py
 │           └── benchmark.py
 ├── README.md
-├── Makefile                    # install/run/debug/clean/lint/bonus
-├── pyproject.toml              # dependencias (uv) y configuración de flake8/mypy/pytest
-├── uv.lock                     # versiones exactas fijadas por uv (reproducibilidad)
-└── .gitignore                  # artefactos de Python ignorados por Git
+├── Makefile                     # install/run/debug/clean/lint/bonus
+├── pyproject.toml              # dependências (uv) e configuração de flake8/mypy/pytest
+├── uv.lock                     # versões exatas travadas pelo uv (reprodutibilidade)
+└── .gitignore                  # artefatos Python ignorados pelo Git
 ```
 
-## Algorithm Choices
+## Construção do projeto
 
-### 1. Construcción del grafo
-El mapa se analiza una sola vez en un `Graph` (zonas + conexiones), con la lista de adyacencia precalculada — evita recorrer todas las conexiones cada vez que se necesita saber los vecinos de una zona.
 
-### 2. BFS: valida si existe un camino
-Antes de simular, un `BFS` simple confirma que existe una ruta entre `start` y `end`, ignorando las zonas `blocked`. Falla rápido si el mapa es imposible, en lugar de descubrirlo turno a turno.
+### 1. Construção do grafo
 
-### 3. Dijkstra: camino más barato en turnos
-`BFS` solo cuenta saltos; `Dijkstra` (con `heapq`) encuentra el camino de menor costo en turnos, ya que `restricted` cuesta 2 turnos y `normal`/`priority` cuestan 1. Las zonas `blocked` nunca se expanden.
+O mapa é parseado uma vez em um `Graph` (zonas + conexões), com a lista de adjacência pré-calculada — evita varrer todas as conexões toda vez que se precisa saber os vizinhos de uma zona.
 
-### 4. Balanceo de carga
-`Dijkstra` resuelve el problema para un único drone. Con varios drones, el camino de cada uno se calcula una sola vez (no se recalcula en cada turno) y, si existen caminos alternativos del mismo costo, los drones se distribuyen entre ellos — evita que todos compitan por la misma ruta.
+### 2. Algoritmo BFS: valida se existe caminho
+Antes de simular, um `BFS` simples confirma que existe rota entre `start` e `end`, ignorando zonas `blocked`. Falha rápido se o mapa for impossível, em vez de descobrir isso turno a turno.
 
-### 5. Turno en dos fases
-Cada turno resuelve primero todas las salidas y después todas las llegadas — esto es lo que permite que un drone entre a una zona en el mismo turno en que otro está saliendo de ella.
+### 3. Algoritmo Dijkstra: encontra o caminho mais barato em turnos
+`BFS` só conta saltos, já o `Dijkstra` (com `heapq`) encontra o caminho de menor custo em turnos, já que `restricted` custa 2 turnos e `normal`/`priority` custam 1. Zonas `blocked` nunca são expandidas.
 
-### 6. Tránsito de 2 turnos (`restricted`)
-Modelado como un pequeño estado en el drone (`STOPPED` -> `IN_TRANSIT`), con el lugar en el destino reservado ya desde la salida — el drone nunca se queda esperando a mitad de camino.
+### 4. Balanceamento de carga
+`Dijkstra` resolve para um único drone. Com vários drones, o caminho de cada um é calculado uma vez só (não recalculado a cada turno) e, se existirem caminhos alternativos de mesmo custo, os drones são distribuídos entre eles — evita todo mundo competir pela mesma rota.
 
-### 7. Conflictos y deadlock
-Quien pierde la disputa por un lugar simplemente espera y lo vuelve a intentar en el turno siguiente (el desempate se hace por el orden de la lista, determinístico). Un límite máximo de turnos evita un bucle infinito.
+### 5. Turno em duas fases
+Cada turno resolve primeiro todas as saídas, depois todas as chegadas — isso é o que permite um drone entrar numa zona no mesmo turno em que outro está saindo dela.
+
+### 6. Trânsito de 2 turnos (`restricted`)
+Modelado como um pequeno estado no drone (`STOPPED` -> `IN_TRANSIT`), com a vaga no destino reservada já na saída — o drone nunca fica preso esperando no meio do caminho.
+
+### 7. Conflitos e deadlock
+Quem perde a disputa por uma vaga só espera e tenta de novo no turno seguinte (desempate é feito pela ordem da lista, determinístico). Um limite máximo de turnos evita loop infinito.
+
 
 ## Visualization
 
-### Renderizado del mapa
-Las zonas se convierten en ilustraciones temáticas según su tipo (`start`/`end`/`normal`/`priority`/`restricted`/`blocked`), con las coordenadas `x`/`y` del mapa convertidas a píxeles de forma dinámica (escala calculada a partir de los límites del mapa cargado, no fija). Las conexiones se dibujan como líneas entre los centros de las zonas.
+### Renderização do mapa
+Zonas viram ilustrações temáticas por tipo (`start`/`end`/`normal`/`priority`/`restricted`/`blocked`), com as coordenadas `x`/`y` do mapa convertidas em pixels dinamicamente (escala calculada a partir dos limites do mapa carregado, não fixa). Conexões são desenhadas como linhas entre os centros das zonas.
 
 ### Drones por turno
-Cada drone aparece sobre la zona donde está; en tránsito (`restricted`, 2 turnos), aparece en el punto medio entre origen y destino — deja visualmente claro que está "en camino", no detenido en una zona.
+Cada drone aparece sobre a zona onde está; em trânsito (`restricted`, 2 turnos), aparece no ponto médio entre origem e destino — deixa visualmente claro que ele está "no caminho", não parado numa zona.
 
-### Navegación
-`K_RIGHT`/`K_LEFT` avanzan y retroceden un turno manualmente, y `K_RETURN` corre toda la simulación automáticamente, turno a turno, con un pequeño retraso entre ellos.
+### Navegação
+`K_RIGHT`/`K_LEFT` avançam e voltam turno a turno manualmente e `K_RETURN` roda a simulação inteira automaticamente, turno a turno, com um pequeno delay entre eles.
 
-### Información en pantalla
-El turno actual y la lista de movimientos de ese turno son visibles en pantalla, además de imprimirse en la consola — la misma información en dos formatos (visual y texto), reforzando lo que está pasando.
+### Informação na tela
+O turno atual e a lista de movimentos daquele turno ficam visíveis na tela, além de serem impressos no console — a mesma informação em dois formatos (visual e texto), reforçando o que está acontecendo.
 
 ---
 
 # Instructions
 
-## Requisitos previos
+## Pré-requisitos
 
-- Python 3.10+ (el proyecto usa 3.12)
-- Módulo `uv` instalado
+- Python 3.10+ (o projeto usa 3.12)
+- Modulo `uv` instalado
 
-## Instalación
+## Instalação
 
 ```bash
 make install
 ```
 
-## Ejecutar el proyecto
+## Executar o projeto
 
 ```bash
 make run
 ```
 
-> Corre la simulación con el mapa por defecto (`maps/config_map.txt`) y abre la interfaz gráfica.
+> Roda a simulação com o mapa padrão (maps/config_map.txt) e abre a interface gráfica.
 
-Para correr un mapa específico:
+Pra rodar um mapa específico:
 
 ```bash
 uv run python -m src.fly_in maps/easy/01_linear_path.txt
 ```
 
-## Dentro de la interfaz:
+## Dentro da interface:
 
-- `→` / `←` avanza/retrocede un turno;
-- `Enter` corre todo automáticamente.
+- `→` / `←` avança/volta um turno;
+- `Enter` roda tudo automaticamente.
 
 ## Debug
 
@@ -136,15 +137,15 @@ uv run python -m src.fly_in maps/easy/01_linear_path.txt
 make debug
 ```
 
-Abre el `pdb` en el punto de entrada del programa.
+Abre o `pdb` no ponto de entrada do programa.
 
-## Correr los mapas de referencia
+## Rodar os mapas de referência
 
 ```bash
 make bonus
 ```
 
-> Corre los 10 mapas oficiales (easy/medium/hard/challenger) y muestra los turnos obtenidos contra la meta de cada uno.
+> Roda os 10 mapas oficiais (easy/medium/hard/challenger) e mostra os turnos obtidos contra a meta de cada um.
 
 ## Lint
 
@@ -152,7 +153,7 @@ make bonus
 make lint
 ```
 
-## Limpiar cachés
+## Limpar caches
 
 ```bash
 make clean
@@ -162,25 +163,37 @@ make clean
 
 # Resources
 
-## Referencias de documentación usada, artículos, tutoriales, etc.
+## Referências de documentacoes usadas, artigos, tutoriais, etc.
 
-[Guía de inicio rápido de pytest](https://docs.pytest.org/en/stable/getting-started.html)
-[Documentación oficial de uv](https://docs.astral.sh/uv/)
-[Documentación de dataclasses](https://docs.python.org/es/dev/library/dataclasses.html)
-[Grafos y algoritmos](https://medium.com/programadores-ajudando-programadores/os-grafos-e-os-algoritmos-697c1fd4a416)
-[Implementando el algoritmo de Dijkstra en Python: un tutorial paso a paso](https://www.datacamp.com/es/tutorial/dijkstra-algorithm-in-python)
-[Breadth-First Search en Python: una guía con ejemplos](https://www.datacamp.com/es/tutorial/breadth-first-search-in-python)
+[Guia de início rápido do pytest](https://docs.pytest.org/en/stable/getting-started.html)
+
+[Documentação oficial do uv](https://docs.astral.sh/uv/)
+
+[Documentacao do dataclasses](https://docs.python.org/pt-br/dev/library/dataclasses.html)
+
+[Grafos e algoritmos](https://medium.com/programadores-ajudando-programadores/os-grafos-e-os-algoritmos-697c1fd4a416)
+
+[Implementando o algoritmo Dijkstra em Python: Um tutorial passo a passo](https://www.datacamp.com/pt/tutorial/dijkstra-algorithm-in-python)
+
+[Breadth-First Search em Python: Um guia com exemplos](https://www.datacamp.com/pt/tutorial/breadth-first-search-in-python)
+
 [Python Graphs](https://www.w3schools.com/python/python_dsa_graphs.asp)
-[Documentación de heapq (cola de prioridad en Python)](https://docs.python.org/3/library/heapq.html)
-[Documentación de collections.deque (cola eficiente, para BFS)](https://docs.python.org/3/library/collections.html#collections.deque)
-[Documentación de re - W3Schools](https://www.w3schools.com/python/ref_module_re.asp)
-[Regular expression HOWTO](https://docs.python.org/es/3.14/howto/regex.html)
-[Documentación de re](https://docs.python.org/es/3.14/library/re.html)
-[Documentación oficial de pygame v2.6.0](https://www.pygame.org/docs/)
 
-## Uso de IA
+[Documentação do heapq (fila de prioridade em Python)](https://docs.python.org/3/library/heapq.html)
 
-El agente de IA Sonnet, de Claude, fue utilizado para ayudar en la estructuración del proyecto (carpetas y subcarpetas, así como sus nombres correctos).
-Ayuda indicando qué pruebas unitarias podrían hacerse.
-Traducción de todas las variables, clases y módulos al inglés; y de los docstrings, comentarios y salidas (prints y errores) al español. Así como la traducción de este README.
-El agente de IA nano-banana, de Gemini, fue utilizado para generar más imágenes, tomando como referencia imágenes ya creadas.
+[Documentação do collections.deque (fila eficiente, para BFS)](https://docs.python.org/3/library/collections.html#collections.deque)
+
+[Documentacao re - W3Schools](https://www.w3schools.com/python/ref_module_re.asp)
+
+[Regular expression HOWTO](https://docs.python.org/pt-br/3.14/howto/regex.html)
+
+[Documentacao re](https://docs.python.org/pt-br/3.14/library/re.html)
+
+[Documentação oficial do pygame v2.6.0](https://www.pygame.org/docs/)
+
+## Uso da IA
+
+O agente de IA sonnete, do claude, foi utilizado para auxiliar na estruturacao do projeto (como pastas e subpastas, assim como suas nomenclaturas corretas).
+Auxilio indicando quais testes unitarios que poderiam ser feitos.
+Traducao de todas as variaveis, classes e modulos para ingles; e as docstrings, comentarios e saidas (prints e erros) para espanhol. Assim como a traducao deste README.
+O agente de IA nano-banana, do gemini, foi utilizada para gerar mais imagens, tomando como referencias de imagens criadas.
