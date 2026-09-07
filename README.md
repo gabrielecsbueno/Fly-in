@@ -97,6 +97,11 @@ Cada drone aparece sobre a zona onde está; em trânsito (`restricted`, 2 turnos
 ### Informação na tela
 O turno atual e a lista de movimentos daquele turno ficam visíveis na tela, além de serem impressos no console — a mesma informação em dois formatos (visual e texto), reforçando o que está acontecendo.
 
+
+## I/O
+
+[Exemplo de entrada e saída esperada demonstrando a funcionalidade do programa]
+
 ---
 
 # Instructions
