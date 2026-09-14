@@ -221,7 +221,7 @@ class Interface:
         position = (880, 60)
         # position = (440, 30)
         text3 = self.font_text_name.render(
-            self.show_turn(current_turn),
+            ' '.join(self.map_result.turn_results[current_turn-1]),
             True,
             self.colors['white']
         )
