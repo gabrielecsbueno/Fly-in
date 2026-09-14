@@ -96,6 +96,60 @@ Cada drone aparece sobre la zona donde está; en tránsito (`restricted`, 2 turn
 ### Información en pantalla
 El turno actual y la lista de movimientos de ese turno son visibles en pantalla, además de imprimirse en la consola — la misma información en dos formatos (visual y texto), reforzando lo que está pasando.
 
+
+## I/O
+
+Exemplo:
+```bash
+nb_drones: 5
+start_hub: hub 0 0 [color=green]
+end_hub: goal 10 10 [color=yellow]
+hub: roof1 3 4 [zone=restricted color=red]
+hub: roof2 6 2 [zone=normal color=blue]
+hub: corridorA 4 3 [zone=priority color=green max_drones=2]
+hub: tunnelB 7 4 [zone=normal color=red]
+hub: obstacleX 5 5 [zone=blocked color=gray]
+connection: hub-roof1
+connection: hub-corridorA
+connection: roof1-roof2
+connection: roof2-goal
+connection: corridorA-tunnelB [max_link_capacity=2]
+connection: tunnelB-goal
+```
+
+#### Drones:
+
+- `nb_drones: <número>` : define la cantidad de drones en uso.
+
+#### Zonas:
+
+- `start_hub: <nombres> <x> <y> [metadados]` : define la zona inicial.
+- `end_hub: <nombres> <x> <y> [metadados]`: define la zona final.
+- `hub: <nombres> <x> <y> [metadados]`: define una zona normal.
+
+Metadatos (opcional):
+
+- `zone=<tipo>`: tipo de zona
+    - `normal`: zona estándar con un coste de movimiento de 1 turno.
+    - `blocked`: zona inaccesible. Los drones no pueden entrar ni atravesar esta zona. Cualquier ruta que la utilice es inválida.
+    - `restricted`: zona sensible o peligrosa. El movimiento a esta zona cuesta 2 turnos.
+    - `priority`: zona prioritaria. El movimiento a esta zona cuesta 1 turno, pero debe tener prioridad en la búsqueda de rutas.
+
+- `color=<valor>` (padron: `none`)
+    - Se aceptan cadenas de una sola palabra válidas (`red`, `blue`, `gray`).
+
+- `max_drones=<número>` (padron: `1`): Número máximo de drones que pueden ocupar esta zona simultáneamente.
+
+#### Conexión
+
+- `connection: <nombres1>-<nombres2> [metadados]`: Define una conexión bidireccional (arista) entre dos zonas.
+
+Metadatos (opcional):
+
+- `max_link_capacity=<número>` (padron: `1`): Número máximo de drones que pueden atravesar esta conexión simultáneamente.
+
+> OBS: Los guiones están prohibidos en los nombres de las zonas. Los comentarios que comienzan con '#' se ignoran. Las coordenadas de las zonas siempre son números enteros, y siempre debe haber una única zona de inicio y una única zona de finalización. En este proyecto no se utilizaron colores para la representación visual.
+
 ---
 
 # Instructions
@@ -122,7 +176,7 @@ make run
 Para correr un mapa específico:
 
 ```bash
-uv run python -m src.fly_in maps/easy/01_linear_path.txt
+uv run python -m src.fly_in --map <ruta>
 ```
 
 ## Dentro de la interfaz:

@@ -100,7 +100,56 @@ O turno atual e a lista de movimentos daquele turno ficam visíveis na tela, al�
 
 ## I/O
 
-[Exemplo de entrada e saída esperada demonstrando a funcionalidade do programa]
+Exemplo:
+```bash
+nb_drones: 5
+start_hub: hub 0 0 [color=green]
+end_hub: goal 10 10 [color=yellow]
+hub: roof1 3 4 [zone=restricted color=red]
+hub: roof2 6 2 [zone=normal color=blue]
+hub: corridorA 4 3 [zone=priority color=green max_drones=2]
+hub: tunnelB 7 4 [zone=normal color=red]
+hub: obstacleX 5 5 [zone=blocked color=gray]
+connection: hub-roof1
+connection: hub-corridorA
+connection: roof1-roof2
+connection: roof2-goal
+connection: corridorA-tunnelB [max_link_capacity=2]
+connection: tunnelB-goal
+```
+
+#### Drones:
+
+- `nb_drones: <número>` : define o número de drones usando
+
+#### Zonas:
+
+- `start_hub: <nome> <x> <y> [metadados]` : define a zona inicial
+- `end_hub: <nome> <x> <y> [metadados]`: define a zona final
+- `hub: <nome> <x> <y> [metadados]`: define uma zona regular
+
+Metadados (opcionais):
+
+- `zone=<tipo>`: tipo de zona
+    - `normal`: Zona padrão com custo de movimento de 1 turno
+    - `blocked`: Zona inacessível. Os drones não podem entrar ou passar por esta zona. Qualquer caminho que a utilize é inválido
+    - `restricted`: Uma zona sensível ou perigosa. O movimento para esta zona custa 2 turnos
+    - `priority`: Uma zona preferencial. O movimento para esta zona custa 1 turno, mas deve ser priorizado no pathfinding
+
+- `color=<valor>` (padrão: `none`)
+    - aceitos quaisquer strings válidas de uma única palavra (`red`, `blue`, `gray`).
+
+- `max_drones=<número>` (padrão: `1`): Número máximo de drones que podem ocupar esta zona simultaneamente
+
+#### Conexão
+
+- `connection: <nome1>-<nome2> [metadados]`: Define uma conexão bidirecional (aresta) entre duas zonas
+
+Metadados (opcionais):
+
+- `max_link_capacity=<número>` (padrão: `1`): Número máximo de drones que podem atravessar esta conexão simultaneamente
+
+> OBS: Proibido traços nos nomes das zonas. Comentários começam com '#' e são ignorados. As coordenadas das zonas são sempre inteiras, e sempre deve haver uma única zona de início e uma única zona de fim. Nesse projeto as cores não foram usadas para representação visual.
 
 ---
 
@@ -128,7 +177,7 @@ make run
 Pra rodar um mapa específico:
 
 ```bash
-uv run python -m src.fly_in maps/easy/01_linear_path.txt
+uv run python -m src.fly_in --map <rota>
 ```
 
 ## Dentro da interface:

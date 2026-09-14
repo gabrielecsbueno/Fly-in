@@ -1,21 +1,33 @@
 from .app import start_maps
-import sys
 import pygame
 from .ui.interface import Interface
+import argparse
+
+
+def parse_args() -> argparse.Namespace:
+    """
+    Analiza los argumentos ingresados por el usuario en la linea de
+    comandos.
+
+    Returns
+    -------
+    argparse.Namespace
+        El objeto Namespace que devuelve parse_args(), que guarda los
+        valores de los argumentos de la linea de comandos.
+    """
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--map",
+                        default="maps/config_map.txt",
+                        type=str, help="Archivo de entrada")
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
 
-    # usa un mapa por defecto
-    if len(sys.argv) == 1:
-        file = 'maps/config_map.txt'
-
-    # si no, lee lo que se haya pasado
-    elif len(sys.argv) == 2:
-        file = sys.argv[1]
-
-    else:
-        print("\nError: solo se puede leer un mapa a la vez.")
-        sys.exit(1)
+    args = parse_args()
+    file = args.map
 
     try:
         maps_result = start_maps([file])

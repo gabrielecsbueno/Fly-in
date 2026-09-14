@@ -96,6 +96,59 @@ Each drone appears over the zone it's in; while in transit (`restricted`, 2 turn
 ### On-screen information
 The current turn and that turn's list of movements are visible on screen, as well as printed to the console — the same information in two formats (visual and text), reinforcing what's happening.
 
+## I/O
+
+Exemplo:
+```bash
+nb_drones: 5
+start_hub: hub 0 0 [color=green]
+end_hub: goal 10 10 [color=yellow]
+hub: roof1 3 4 [zone=restricted color=red]
+hub: roof2 6 2 [zone=normal color=blue]
+hub: corridorA 4 3 [zone=priority color=green max_drones=2]
+hub: tunnelB 7 4 [zone=normal color=red]
+hub: obstacleX 5 5 [zone=blocked color=gray]
+connection: hub-roof1
+connection: hub-corridorA
+connection: roof1-roof2
+connection: roof2-goal
+connection: corridorA-tunnelB [max_link_capacity=2]
+connection: tunnelB-goal
+```
+
+#### Drones:
+
+- `nb_drones: <number>` : sets the number of drones used
+
+#### Zones:
+
+- `start_hub: <name> <x> <y> [metadata]` : defines the starting zone
+- `end_hub: <name> <x> <y> [metadata]`: defines the ending zone
+- `hub: <name> <x> <y> [metadata]`: defines a regular zone
+
+Metadata (optional):
+
+- `zone=<type>`: zone type
+- `normal`: Standard zone with a movement cost of 1 turn
+- `blocked`: Inaccessible zone. Drones cannot enter or pass through this zone. Any path using it is invalid
+- `restricted`: A sensitive or dangerous zone. Movement into this zone costs 2 turns
+- `priority`: A preferred zone. Movement into this zone costs 1 turn, but it must be prioritized during pathfinding
+
+- `color=<value>` (default: `none`)
+- accepts any valid single-word string (`red`, `blue`, `gray`).
+
+- `max_drones=<number>` (default: `1`): Maximum number of drones that can occupy this zone simultaneously
+
+#### Connection
+
+- `connection: <name1>-<name2> [metadata]`: Defines a bidirectional connection (edge) between two zones
+
+Metadata (optional):
+
+- `max_link_capacity=<number>` (default: `1`): Maximum number of drones that can traverse this connection simultaneously
+
+> Note: Hyphens are not allowed in zone names. Comments begin with '#' and are ignored. Zone coordinates are always integers, and there must always be exactly one start zone and one end zone. In this project, colors were not used for visual representation.
+
 ---
 
 # Instructions
@@ -122,7 +175,7 @@ make run
 To run a specific map:
 
 ```bash
-uv run python -m src.fly_in maps/easy/01_linear_path.txt
+uv run python -m src.fly_in --map <rota>
 ```
 
 ## Inside the interface:
