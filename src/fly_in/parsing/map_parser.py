@@ -99,10 +99,8 @@ class MapParser:
                       or data.startswith('hub:')
                       or data.startswith('end_hub:')):
 
-                    content = data.split(':', 1)[1].strip()
-
-                    zone_data = re.split(r'\s+', content, maxsplit=3)
-                    # zone_data : <nombre> <x> <y> [metadatos]
+                    zone_data = data.split(maxsplit=4)[1:]
+                    # zone_data: <nombre> <x> <y> [metadatos]
 
                     if not zone_data:
                         raise InvalidZoneTypeError(
@@ -130,8 +128,20 @@ class MapParser:
                             i, 'valor de coordenada inválido'
                             )
 
+                    if any(z.x == x for z in self.zones):
+                        if any(z.y == y for z in self.zones):
+                            raise InvalidZoneTypeError(
+                                i, f"zona '{name}' con coordenada duplicada"
+                                )
+
                     metadata: dict[str, Any] = {}
                     if len(zone_data) > 3 and zone_data[3]:
+
+                        if not zone_data[3].startswith("["):
+                            raise InvalidZoneTypeError(
+                                i, f"valor '{zone_data[3]}' invalido"
+                            )
+
                         ignore_keys = [
                             'max_drones'
                             if (data.startswith('start_hub:')
@@ -192,12 +202,12 @@ class MapParser:
                     # si no existe ninguna zona con estos nombres
                     if not any(z.name == zone1_name for z in self.zones):
                         raise InvalidConnectionError(
-                            i, f'la zona {zone1_name} no existe'
+                            i, f"la zona '{zone1_name}' no existe"
                         )
 
                     if not any(z.name == zone2_name for z in self.zones):
                         raise InvalidConnectionError(
-                            i, f'la zona {zone2_name} no existe'
+                            i, f"la zona '{zone2_name}' no existe"
                             )
 
                     metadata = {}
@@ -297,7 +307,7 @@ class MapParser:
     def _init_drones(self, nb_drones: int, line: int) -> None:
         """Crea los drones a partir de la cantidad indicada"""
 
-        if nb_drones <= 0:
+        if nb_drones <= 0 or nb_drones > 100:
             raise ValueDronesError(line,
                                    "el valor de 'nb_drones' no es válido.")
 

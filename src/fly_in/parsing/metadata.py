@@ -1,4 +1,3 @@
-from re import findall
 from typing import Any
 from ..domain.zone_type import ZoneType
 
@@ -30,7 +29,7 @@ class Metadata:
             ignore_keys: list[str]
             ) -> None:
 
-        self.metadata_value = metadata_value
+        self.metadata_value = metadata_value.strip("[]")
         self.valid_keys = valid_keys
         self.ignore_keys = ignore_keys
         self._metadata: dict[str, Any] = {}
@@ -55,8 +54,14 @@ class Metadata:
             positiva).
         """
 
-        # usa regex para extraer la información de la cadena de metadatos
-        self._metadata = dict(findall(r'(\w+)=(-?\w+)', self.metadata_value))
+        # split en el espacio
+        pairs = self.metadata_value.split()
+
+        # divido la cadena por los espacios para obtener cada par clave=valor
+        for pair in pairs:
+            if "=" in pair:
+                key, value = pair.split("=", 1)
+                self._metadata[key] = value
 
         # comprueba si hay claves no aceptadas en los metadatos
         invalid_keys = [md
