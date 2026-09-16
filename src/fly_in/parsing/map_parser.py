@@ -1,4 +1,3 @@
-import re
 from typing import Union, Any
 from ..domain.drone import Drone, DroneStatus
 from ..domain.zone import Zone
@@ -83,7 +82,7 @@ class MapParser:
                     continue
 
                 # DRONES
-                elif data.startswith('nb_drones:'):
+                elif data.split(maxsplit=1)[0] == 'nb_drones:':
 
                     try:
                         nb_drones = int(data[11:])
@@ -95,9 +94,9 @@ class MapParser:
                         self._init_drones(nb_drones, i)
 
                 # ZONAS
-                elif (data.startswith('start_hub:')
-                      or data.startswith('hub:')
-                      or data.startswith('end_hub:')):
+                elif data.split(maxsplit=1)[0] in (
+                    'start_hub:', 'hub:', 'end_hub:'
+                ):
 
                     zone_data = data.split(maxsplit=4)[1:]
                     # zone_data: <nombre> <x> <y> [metadatos]
@@ -128,16 +127,18 @@ class MapParser:
                             i, 'valor de coordenada inválido'
                             )
 
-                    if any(z.x == x for z in self.zones):
-                        if any(z.y == y for z in self.zones):
-                            raise InvalidZoneTypeError(
-                                i, f"zona '{name}' con coordenada duplicada"
-                                )
+                    if any(z.x == x and z.y == y for z in self.zones):
+                        raise InvalidZoneTypeError(
+                            i, f"zona '{name}' con coordenada duplicada"
+                        )
 
                     metadata: dict[str, Any] = {}
                     if len(zone_data) > 3 and zone_data[3]:
 
-                        if not zone_data[3].startswith("["):
+                        if (
+                            not zone_data[3].startswith("[")
+                            or not zone_data[3].endswith("]")
+                        ):
                             raise InvalidZoneTypeError(
                                 i, f"valor '{zone_data[3]}' invalido"
                             )
@@ -179,24 +180,29 @@ class MapParser:
                         self.zone_end = self.zones[-1]
 
                 # CONEXIONES
-                elif data.startswith('connection:'):
-
-                    content = data.split(':', 1)[1].strip()
+                elif data.split(maxsplit=1)[0] == 'connection:':
 
                     # lo convierte en una lista de 2 o 3 (si hay metadatos)
-                    connection = re.split(r"-|\s+(?=\[)", content, maxsplit=2)
+                    content = data.split(maxsplit=2)
 
-                    zone1_name = connection[0]
-                    zone2_name = connection[1]
+                    try:
+                        content_connection = content[1].split("-")
+                        zone1_name = content_connection[0]
+                        zone2_name = content_connection[1]
+                    # si no hay 2
+                    except Exception:
+                        raise InvalidConnectionError(
+                            i, f"formato '{data}' inválido."
+                        )
 
-                    # si no hay 2, o si los dos primeros están vacíos
+                    # si los dos primeros están vacíos
                     if (
-                            len(connection) < 2
-                            or not zone1_name
-                            or not zone2_name
+                        len(content_connection) != 2
+                        or not zone1_name
+                        or not zone2_name
                     ):
                         raise InvalidConnectionError(
-                            i, f"formato '{connection}' inválido."
+                            i, f"formato '{data}' inválido."
                         )
 
                     # si no existe ninguna zona con estos nombres
@@ -211,9 +217,18 @@ class MapParser:
                             )
 
                     metadata = {}
-                    if len(connection) > 2 and connection[2]:
+                    if len(content) > 2 and content[2]:
+
+                        if (
+                            not content[2].startswith("[")
+                            or not content[2].endswith("]")
+                        ):
+                            raise InvalidConnectionError(
+                                i, f"formato '{data}' inválido."
+                            )
+
                         metadata = self._init_metadata(
-                            connection[2], ['max_link_capacity'], [], i
+                            content[2], ['max_link_capacity'], [], i
                         )
 
                     if any(

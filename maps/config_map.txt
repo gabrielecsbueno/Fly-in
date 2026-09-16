@@ -1,8 +1,8 @@
 # Teste facil
 
-nb_drones: 1
+nb_drones: 4
 
-start_hub: A 0 0 [zone=priority max_drones=2]
+start_hub: A 0 0
 hub: B 2 2
 hub: C 2 -1 [zone=priority max_drones=2]
 hub: D 3 1
@@ -13,7 +13,7 @@ hub: H 7 -1 [zone=blocked max_drones=2]
 end_hub: I 8 0 [zone=restricted max_drones=2]
 
 connection: A-B
-connection: A-C [max_link_capacity=1]
+connection: A-C
 connection: B-D
 connection: B-G
 connection: C-D

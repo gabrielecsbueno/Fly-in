@@ -1,5 +1,6 @@
 from typing import Any
 from ..domain.zone_type import ZoneType
+from pygame.colordict import THECOLORS
 
 
 class Metadata:
@@ -59,9 +60,18 @@ class Metadata:
 
         # divido la cadena por los espacios para obtener cada par clave=valor
         for pair in pairs:
-            if "=" in pair:
-                key, value = pair.split("=", 1)
-                self._metadata[key] = value
+            if "=" not in pair:
+                raise ValueError(f"metadato inválido '{pair}'")
+
+            key, value = pair.split("=", 1)
+
+            if not key or not value:
+                raise ValueError(f"metadato inválido '{pair}'")
+
+            if key in self._metadata:
+                raise ValueError(f"clave duplicada '{key}'")
+
+            self._metadata[key] = value
 
         # comprueba si hay claves no aceptadas en los metadatos
         invalid_keys = [md
@@ -102,3 +112,10 @@ class Metadata:
                     if self._metadata[key] <= 0:
                         raise ValueError(f'{key} debe ser un entero '
                                          'positivo')
+            if key == 'color':
+                color_value = self._metadata[key].lower()
+                if (
+                    color_value not in THECOLORS
+                    and color_value != 'rainbow'
+                ):
+                    raise ValueError(f"color invalido '{self._metadata[key]}'")

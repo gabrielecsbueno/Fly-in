@@ -149,7 +149,7 @@ Metadados (opcionais):
 
 - `max_link_capacity=<número>` (padrão: `1`): Número máximo de drones que podem atravessar esta conexão simultaneamente
 
-> OBS: Proibido traços nos nomes das zonas. Comentários começam com '#' e são ignorados. As coordenadas das zonas são sempre inteiras, e sempre deve haver uma única zona de início e uma única zona de fim. Nesse projeto as cores não foram usadas para representação visual.
+> OBS: Proibido traços nos nomes das zonas. Comentários começam com '#' e são ignorados. As coordenadas das zonas são sempre inteiras, e sempre deve haver uma única zona de início e uma única zona de fim.
 
 ---
 

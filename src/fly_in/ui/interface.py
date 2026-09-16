@@ -236,8 +236,30 @@ class Interface:
 
             zone_rect = pygame.Rect(coord, self.cell_size)
 
-            text = self.font_text.render(zone.name, True, self.colors['white'])
-            self.screen.blit(text, text.get_rect(midtop=zone_rect.midtop))
+            bg_color = None
+            text_color = self.colors['white']
+
+            if zone.color and zone.color != 'rainbow':
+                bg_color = pygame.Color(zone.color)
+
+                luminance = (0.299 * bg_color.r
+                             + 0.587 * bg_color.g
+                             + 0.114 * bg_color.b)
+
+                if luminance > 140:
+                    text_color = self.colors['black']
+
+            text = self.font_text.render(zone.name, True, text_color)
+            text_rect = text.get_rect(midtop=zone_rect.midtop)
+
+            if bg_color:
+                padding = 2
+                pygame.draw.rect(
+                    self.screen,
+                    bg_color,
+                    text_rect.inflate(padding * 2, padding * 2)
+                )
+            self.screen.blit(text, text_rect)
 
             # self.screen.blit(text, text.get_rect(center=zone_rect.center))
 
